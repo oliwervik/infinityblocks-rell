@@ -1,0 +1,13 @@
+operation change_username(new_username: text) {
+    val account = auth.authenticate();
+    val user = user @ { account };
+
+    if (not exists(user_history @? { .account == account })) {
+        create user_history ( account = account, last_name_change = time.now() );
+        update user @ { .account == account } ( name = new_username );
+    } else {
+        val timestamp = user_history @ { .account == account } ( @sort_desc .last_name_change ) limit 1;
+        require(timestamp > time.minutes_from_now(1), "You can change your username only once per 1 minute");
+        update user @ { .account == account } ( name = new_username );
+    }
+}

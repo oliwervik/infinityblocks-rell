@@ -1,0 +1,3 @@
+ query get_user_name (account_id : byte_array) {
+    return user @ {.id == account_id} (.name);
+}

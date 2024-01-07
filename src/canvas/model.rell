@@ -1,0 +1,53 @@
+import accounts.*;
+
+//Somehow add the cost to paint an existing cell everytime it is painted
+//We need some attribute that scales the cost or keep track of the number of times a cell has been painted
+entity cell {
+    key location: location;
+    mutable color: text;
+    mutable paintedBy: user;
+    mutable paintedAt: timestamp;
+    mutable dirty: boolean;
+}
+
+entity canvas {
+    mutable size: size;
+    mutable pixelSize: integer;
+    mutable minScale: decimal;
+    mutable maxScale: decimal;
+    mutable defaultColor: text;
+}
+
+entity location {
+    x: integer;
+    y: integer;
+}
+
+entity size {
+    width: integer;
+    height: integer;
+}
+
+struct cell_dto {
+    location: struct<location>;
+    color: text;
+    paintedBy: struct<user>;
+    paintedAt: timestamp;
+    dirty: boolean;
+}
+
+struct location_dto {
+    location: struct<location>;
+}
+
+struct cells_dto {
+    cells: set<cell>;
+}
+
+struct canvas_dto {
+    size: struct<size>;
+    pixelSize: integer;
+    minScale: decimal;
+    maxScale: decimal;
+    defaultColor: text;
+}

@@ -1,0 +1,10 @@
+query get_all_cells(user_id: byte_array) {
+    val cells = cell @* { } ( cell_dto(.location.to_struct(), .paintedAt, .paintedBy.to_struct(), .color, .dirty) );
+    return cells;
+}
+
+query get_canvas(user_id: byte_array) {
+    val canvas = canvas @ { } ( canvas_dto(.size.to_struct(), .pixelSize, .minScale, .maxScale, .defaultColor) );
+    return canvas;
+}
+

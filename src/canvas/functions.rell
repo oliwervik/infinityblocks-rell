@@ -1,0 +1,10 @@
+function get_cell(location) {
+    return cell @ { .location == location };
+}
+
+// *
+// * Utility functions
+// *
+function require_is_signer(pubkey) = require(op_context.is_signer(pubkey), "User must sign this operation");
+
+function require_user(id: byte_array) = require(user @? { id }, "User with id %b does not exist".format(id));

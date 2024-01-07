@@ -1,0 +1,42 @@
+operation init_canvas() {
+    ft4.admin.require_admin();
+
+    val canvas_size = create size (
+        width = 2000,
+        height = 2000
+    );
+
+    if (not exists(canvas @? {})) {
+        create canvas (
+            size = canvas_size,
+            pixelSize = 20,
+            minScale = 0.1,
+            maxScale = 11,
+            defaultColor = "0xffffff"
+        );
+    }
+}
+
+
+operation paint_cell(x: integer, y: integer, at_color: text) {
+    val account = auth.authenticate();
+    val user = user @ { account };
+    val timestamp = op_context.last_block_time;
+
+    if (not exists(cell @? { .location.x == x, .location.y == y })) {
+        val new_loc = create location (
+            x = x,
+            y = y
+        );
+
+        create cell (
+            location = new_loc,
+            color = at_color,
+            paintedBy = user,
+            paintedAt = timestamp,
+            dirty = true
+        );
+    } else {
+        update cell @ { .location.x == x, .location.y == y } ( color = at_color );
+    }
+}

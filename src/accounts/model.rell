@@ -1,0 +1,10 @@
+entity user {
+  mutable name;
+  key id: byte_array;
+  key account;
+}
+
+entity user_history {
+  key account;  
+  last_name_change: timestamp;
+}
