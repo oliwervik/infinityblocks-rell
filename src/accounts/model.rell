@@ -5,6 +5,6 @@ entity user {
 }
 
 entity user_history {
-  key account;  
+  index account;
   last_name_change: timestamp;
 }

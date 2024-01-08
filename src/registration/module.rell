@@ -14,5 +14,5 @@ operation register_account(name, evm_address: byte_array, signature) {
     require(op_context.get_signers().size() > 0, "Must sign with a session keypair");
     val account = evm.create_account_from_evm(evm_address, signature);
     val user = create user ( name, evm_address, account );
-    add_auth_descriptor_to_account(account, single_sig_auth_descriptor(op_context.get_signers()[0], set(["I want to login to Infinity Blocks"])));
+    add_auth_descriptor_to_account(account, single_sig_auth_descriptor(op_context.get_signers()[0], set(["MySession"])));
 }
