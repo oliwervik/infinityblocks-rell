@@ -6,7 +6,7 @@ operation init_canvas() {
         height = 2000
     );
 
-    if (not exists(canvas @? {})) {
+    if (not exists(canvas @? { })) {
         create canvas (
             size = canvas_size,
             pixelSize = 20,
@@ -16,7 +16,6 @@ operation init_canvas() {
         );
     }
 }
-
 
 operation paint_cell(x: integer, y: integer, at_color: text) {
     val account = auth.authenticate();
@@ -37,6 +36,14 @@ operation paint_cell(x: integer, y: integer, at_color: text) {
             dirty = true
         );
     } else {
-        update cell @ { .location.x == x, .location.y == y } ( color = at_color );
+        update cell @ {
+            .location.x == x,
+            .location.y == y
+        } (
+            color = at_color,
+            paintedBy = user,
+            paintedAt = timestamp,
+            dirty = true
+        );
     }
 }
