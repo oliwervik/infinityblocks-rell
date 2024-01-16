@@ -250,6 +250,12 @@ query get_canvas(user_id: byte_array) {
     return canvas;
 }
 
+query get_cells_by_user(account_id: byte_array) {
+    val user = user @ { .id == account_id };
+    val cells = cell @* { .paintedBy == user } ( cell_dto(.location.to_struct(), .paintedAt, .paintedBy.to_struct(), .color, .dirty) );
+    return cells;
+}
+
 </string>
                             </entry>
                             <entry key="development.rell">
