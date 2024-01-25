@@ -8,3 +8,20 @@ function get_cell(location) {
 function require_is_signer(pubkey) = require(op_context.is_signer(pubkey), "User must sign this operation");
 
 function require_user(id: byte_array) = require(user @? { id }, "User with id %b does not exist".format(id));
+
+function init_canvas() {
+    val canvas_size = create size (
+        width = 2000,
+        height = 2000
+    );
+
+    if (not exists(canvas @? { })) {
+        create canvas (
+            size = canvas_size,
+            pixelSize = 20,
+            minScale = 0.1,
+            maxScale = 11,
+            defaultColor = "0xffffff"
+        );
+    }
+}

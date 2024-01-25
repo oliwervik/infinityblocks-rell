@@ -3,4 +3,47 @@ module;
 import accounts;
 import registration.*;
 import canvas.*;
+import voting.*;
 import rell_modules.time;
+import wallet.*;
+
+operation init() {
+    ft4.admin.require_admin();
+    // Initialize Canvas
+    init_canvas();
+    // Create admin account
+    create_admin_acc();
+    // Register assets
+    register_asset_if_needed("Obsidian", "OBSN", 10, "https://infinityblocks.art/obsidian-token.png");
+}
+
+function register_asset_if_needed(asset_name: name, symbol: text, decimals: integer, icon_url: text) {
+    // derive id of the asset
+    val asset_id = (asset_name, chain_context.blockchain_rid).hash();
+    // check if asset already exist
+    if (
+        ft4.assets.asset @ ? {
+         .id == asset_id
+      } ??) return;
+    ft4.assets.Unsafe.register_asset(asset_name, symbol, decimals, chain_context.blockchain_rid, icon_url);
+}
+
+function create_admin_acc() {
+    val auth_descriptor = create_auth_descriptor(ft4.admin.get_admin_pubkey());
+    ft4.accounts.Unsafe.create_account_with_auth(auth_descriptor);
+}
+
+function create_auth_descriptor(
+    signer: byte_array,
+    permissions: list<text> = ["A", "T"],
+    rules: gtv = null.to_gtv()
+): auth_descriptor {
+    return auth_descriptor(
+        auth_type.S,
+        [
+            set(permissions).to_gtv(),
+            signer.to_hex().to_gtv()
+        ],
+        rules
+    );
+}

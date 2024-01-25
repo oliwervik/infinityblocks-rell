@@ -3,3 +3,4 @@ module;
 import main;
 import test.test_operations.*;
 import canvas.*;
+import voting.*;

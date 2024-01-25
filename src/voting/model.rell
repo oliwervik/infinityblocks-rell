@@ -1,0 +1,20 @@
+enum voteSentiment {
+    UP,
+    DOWN
+}
+
+entity vote {
+    identifier: byte_array;
+    voter: user;
+    sentiment: voteSentiment;
+    votedAt: timestamp;
+    key user, cell;
+    index cell;
+}
+
+struct vote_dto {
+    voter: struct<user>;
+    sentiment: voteSentiment;
+    votedAt: timestamp;
+    location: struct<location>;
+}

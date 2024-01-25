@@ -103,9 +103,12 @@ import rell_modules.time;</string>
 </string>
                             </entry>
                             <entry key="accounts/queries.rell">
-                                <string> query get_user_name (account_id : byte_array) {
-    return user @ {.id == account_id} (.name);
-}</string>
+                                <string>query get_user_name(account_id: byte_array) {
+    return user @ { .id == account_id } ( .name );
+}
+
+query get_all_accounts() = ft4.acc.account @* { } ( .id );
+</string>
                             </entry>
                             <entry key="canvas/functions.rell">
                                 <string>function get_cell(location) {
@@ -118,7 +121,23 @@ import rell_modules.time;</string>
 function require_is_signer(pubkey) = require(op_context.is_signer(pubkey), "User must sign this operation");
 
 function require_user(id: byte_array) = require(user @? { id }, "User with id %b does not exist".format(id));
-</string>
+
+function init_canvas() {
+    val canvas_size = create size (
+        width = 2000,
+        height = 2000
+    );
+
+    if (not exists(canvas @? { })) {
+        create canvas (
+            size = canvas_size,
+            pixelSize = 20,
+            minScale = 0.1,
+            maxScale = 11,
+            defaultColor = "0xffffff"
+        );
+    }
+}</string>
                             </entry>
                             <entry key="canvas/model.rell">
                                 <string>import accounts.*;
@@ -181,6 +200,7 @@ struct canvas_dto {
 
 import lib.ft4.auth;
 import lib.ft4.ft4_basic_dev.*;
+import wallet.*;
 
 @extend(auth.auth_handler)
 function () = auth.add_auth_handler(
@@ -188,29 +208,14 @@ function () = auth.add_auth_handler(
 );</string>
                             </entry>
                             <entry key="canvas/operations.rell">
-                                <string>operation init_canvas() {
-    ft4.admin.require_admin();
-
-    val canvas_size = create size (
-        width = 2000,
-        height = 2000
-    );
-
-    if (not exists(canvas @? { })) {
-        create canvas (
-            size = canvas_size,
-            pixelSize = 20,
-            minScale = 0.1,
-            maxScale = 11,
-            defaultColor = "0xffffff"
-        );
-    }
-}
-
-operation paint_cell(x: integer, y: integer, at_color: text) {
+                                <string>operation paint_cell(x: integer, y: integer, at_color: text) {
     val account = auth.authenticate();
     val user = user @ { account };
     val timestamp = op_context.last_block_time;
+
+    val balance = check_balance(account);
+
+    require(balance.amount &gt;= 1, "Not enough balance to paint");
 
     if (not exists(cell @? { .location.x == x, .location.y == y })) {
         val new_loc = create location (
@@ -225,6 +230,10 @@ operation paint_cell(x: integer, y: integer, at_color: text) {
             paintedAt = timestamp,
             dirty = true
         );
+
+        // Transfer to admin account
+        val admin_account = ft4.accounts.account_by_id(ft4.admin.get_admin_pubkey());
+        transfer_to(account, admin_account, 1);
     } else {
         update cell @ {
             .location.x == x,
@@ -235,6 +244,10 @@ operation paint_cell(x: integer, y: integer, at_color: text) {
             paintedAt = timestamp,
             dirty = true
         );
+
+        // Transfer to admin account
+        val admin_account = ft4.accounts.account_by_id(ft4.admin.get_admin_pubkey());
+        transfer_to(account, admin_account, 1);
     }
 }
 </string>
@@ -263,7 +276,8 @@ query get_cells_by_user(account_id: byte_array) {
 
 import main;
 import test.test_operations.*;
-import canvas.*;</string>
+import canvas.*;
+import voting.*;</string>
                             </entry>
                             <entry key="lib/ft4/accounts/auth_basic.rell">
                                 <string>
@@ -2185,7 +2199,51 @@ query get_version(): text = "0.1.7";
 import accounts;
 import registration.*;
 import canvas.*;
-import rell_modules.time;</string>
+import voting.*;
+import rell_modules.time;
+import wallet.*;
+
+operation init() {
+    ft4.admin.require_admin();
+    // Initialize Canvas
+    init_canvas();
+    // Create admin account
+    create_admin_acc();
+    // Register assets
+    register_asset_if_needed("Obsidian", "OBSN", 10, "https://infinityblocks.art/obsidian-token.png");
+}
+
+function register_asset_if_needed(asset_name: name, symbol: text, decimals: integer, icon_url: text) {
+    // derive id of the asset
+    val asset_id = (asset_name, chain_context.blockchain_rid).hash();
+    // check if asset already exist
+    if (
+        ft4.assets.asset @ ? {
+         .id == asset_id
+      } ??) return;
+    ft4.assets.Unsafe.register_asset(asset_name, symbol, decimals, chain_context.blockchain_rid, icon_url);
+}
+
+function create_admin_acc() {
+    val auth_descriptor = create_auth_descriptor(ft4.admin.get_admin_pubkey());
+    ft4.accounts.Unsafe.create_account_with_auth(auth_descriptor);
+}
+
+function create_auth_descriptor(
+    signer: byte_array,
+    permissions: list&lt;text&gt; = ["A", "T"],
+    rules: gtv = null.to_gtv()
+): auth_descriptor {
+    return auth_descriptor(
+        auth_type.S,
+        [
+            set(permissions).to_gtv(),
+            signer.to_hex().to_gtv()
+        ],
+        rules
+    );
+}
+</string>
                             </entry>
                             <entry key="registration/evm.rell">
                                 <string>namespace evm {
@@ -2212,6 +2270,7 @@ import rell_modules.time;</string>
                                 <string>module;
 
 import accounts.*;
+import wallet.*;
 import lib.ft4.accounts. {
     add_auth_descriptor_to_account,
     auth_descriptor,
@@ -2225,6 +2284,7 @@ operation register_account(name, evm_address: byte_array, signature) {
     require(op_context.get_signers().size() &gt; 0, "Must sign with a session keypair");
     val account = evm.create_account_from_evm(evm_address, signature);
     val user = create user ( name, evm_address, account );
+    create_wallet(account);
     add_auth_descriptor_to_account(account, single_sig_auth_descriptor(op_context.get_signers()[0], set(["MySession"])));
 }</string>
                             </entry>
@@ -2280,6 +2340,136 @@ operation create_user_test(name, pubkey) {
   val account_id = Unsafe.create_account_with_auth(single_sig_auth_descriptor(pubkey, set(["MySession"])));
   create user ( name, pubkey, account @ { account_id } );
 }</string>
+                            </entry>
+                            <entry key="voting/functions.rell">
+                                <string></string>
+                            </entry>
+                            <entry key="voting/model.rell">
+                                <string>enum voteSentiment {
+    UP,
+    DOWN
+}
+
+entity vote {
+    identifier: byte_array;
+    voter: user;
+    sentiment: voteSentiment;
+    votedAt: timestamp;
+    key user, cell;
+    index cell;
+}
+
+struct vote_dto {
+    voter: struct&lt;user&gt;;
+    sentiment: voteSentiment;
+    votedAt: timestamp;
+    location: struct&lt;location&gt;;
+}</string>
+                            </entry>
+                            <entry key="voting/module.rell">
+                                <string>import canvas.*;
+import accounts.*;
+import wallet.*;
+
+import lib.ft4.auth;
+import lib.ft4.ft4_basic_dev.*;
+</string>
+                            </entry>
+                            <entry key="voting/operations.rell">
+                                <string>operation cast_vote(sentiment: voteSentiment, x: integer, y: integer) {
+    val account = auth.authenticate();
+    val user = user @ { account };
+    val timestamp = op_context.last_block_time;
+
+    require(location @? { .x == x, .y == y }, "You can only vote on cells that are painted");
+
+    val location = location @ { .x == x, .y == y };
+    val cell = cell @ { .location == location };
+
+    // TODO: Make if the cell is not the same as before the user should be able to vote again
+    // TODO: User should not be able to vote on their own cell
+    // Check if the user has already voted on this cell
+    if (
+        not exists(vote
+@? { .identifier == cell.hash()
+, .voter == user })) {
+        // Give the user a token for voting
+        mint_and_give(account, 1);
+        // Give the voted user a token
+        mint_and_give(cell.paintedBy.account, 1);
+
+        create vote (
+            .identifier = cell.hash(),
+            cell = cell,
+            voter = user,
+            sentiment = sentiment,
+            votedAt = timestamp,
+            user = user
+        );
+    } else {
+        require(false, "You have already voted on this cell");
+    }
+}
+</string>
+                            </entry>
+                            <entry key="voting/queries.rell">
+                                <string>query get_votes_by_cell(x: integer, y: integer) {
+    val location = location @ { x, y };
+    val cell = cell @ { .location == location };
+    val votes = vote @* {
+        .cell == cell
+    } (
+        vote_dto( .voter.to_struct(), .sentiment, .votedAt, .cell.location.to_struct() )
+    );
+
+    return votes;
+}
+
+query get_votes_by_user(account_id: byte_array) {
+    val user = user @ { .id == account_id };
+    val votes = vote @* {
+        .user == user
+    } (
+        vote_dto( .voter.to_struct(), .sentiment, .votedAt, .cell.location.to_struct() )
+    );
+
+    return votes;
+}
+
+query get_all_votes(account_id: byte_array) {
+    val votes = vote @* { } ( vote_dto( .voter.to_struct(), .sentiment, .votedAt, .cell.location.to_struct() ) );
+    return votes;
+}
+</string>
+                            </entry>
+                            <entry key="wallet/functions.rell">
+                                <string>function create_wallet(account: account) {
+    val token = ft4.assets.asset @ { .name == "Obsidian" };
+    ft4.assets.ensure_balance(account, token);
+}
+
+function mint_and_give(account: account, amount: integer) {
+    val token = ft4.assets.asset @ { .name == "Obsidian" };
+    ft4.assets.Unsafe.mint(account, token, amount);
+}
+
+function transfer_to(from: account, to: account, amount: integer) {
+    val token = ft4.assets.asset @ { .name == "Obsidian" };
+    ft4.assets.Unsafe.transfer(from, to, token, amount);
+}
+
+function check_balance(account: account) {
+    val token = ft4.assets.asset @ { .name == "Obsidian" };
+    return ft4.assets.ensure_balance(account, token);
+}
+</string>
+                            </entry>
+                            <entry key="wallet/module.rell">
+                                <string>import accounts.*;
+
+import lib.ft4.auth;
+import lib.ft4.ft4_basic_dev.*;
+</string>
                             </entry>
                         </dict>
                     </entry>

@@ -1,0 +1,27 @@
+query get_votes_by_cell(x: integer, y: integer) {
+    val location = location @ { x, y };
+    val cell = cell @ { .location == location };
+    val votes = vote @* {
+        .cell == cell
+    } (
+        vote_dto( .voter.to_struct(), .sentiment, .votedAt, .cell.location.to_struct() )
+    );
+
+    return votes;
+}
+
+query get_votes_by_user(account_id: byte_array) {
+    val user = user @ { .id == account_id };
+    val votes = vote @* {
+        .user == user
+    } (
+        vote_dto( .voter.to_struct(), .sentiment, .votedAt, .cell.location.to_struct() )
+    );
+
+    return votes;
+}
+
+query get_all_votes(account_id: byte_array) {
+    val votes = vote @* { } ( vote_dto( .voter.to_struct(), .sentiment, .votedAt, .cell.location.to_struct() ) );
+    return votes;
+}

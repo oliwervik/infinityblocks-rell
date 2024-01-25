@@ -1,0 +1,19 @@
+function create_wallet(account: account) {
+    val token = ft4.assets.asset @ { .name == "Obsidian" };
+    ft4.assets.ensure_balance(account, token);
+}
+
+function mint_and_give(account: account, amount: integer) {
+    val token = ft4.assets.asset @ { .name == "Obsidian" };
+    ft4.assets.Unsafe.mint(account, token, amount);
+}
+
+function transfer_to(from: account, to: account, amount: integer) {
+    val token = ft4.assets.asset @ { .name == "Obsidian" };
+    ft4.assets.Unsafe.transfer(from, to, token, amount);
+}
+
+function check_balance(account: account) {
+    val token = ft4.assets.asset @ { .name == "Obsidian" };
+    return ft4.assets.ensure_balance(account, token);
+}

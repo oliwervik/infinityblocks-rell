@@ -1,0 +1,34 @@
+operation cast_vote(sentiment: voteSentiment, x: integer, y: integer) {
+    val account = auth.authenticate();
+    val user = user @ { account };
+    val timestamp = op_context.last_block_time;
+
+    require(location @? { .x == x, .y == y }, "You can only vote on cells that are painted");
+
+    val location = location @ { .x == x, .y == y };
+    val cell = cell @ { .location == location };
+
+    // TODO: Make if the cell is not the same as before the user should be able to vote again
+    // TODO: User should not be able to vote on their own cell
+    // Check if the user has already voted on this cell
+    if (
+        not exists(vote
+@? { .identifier == cell.hash()
+, .voter == user })) {
+        // Give the user a token for voting
+        mint_and_give(account, 1);
+        // Give the voted user a token
+        mint_and_give(cell.paintedBy.account, 1);
+
+        create vote (
+            .identifier = cell.hash(),
+            cell = cell,
+            voter = user,
+            sentiment = sentiment,
+            votedAt = timestamp,
+            user = user
+        );
+    } else {
+        require(false, "You have already voted on this cell");
+    }
+}
