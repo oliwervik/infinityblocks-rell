@@ -1,0 +1,14 @@
+function create_auth_descriptor(
+    signer: byte_array,
+    permissions: list<text> = ["A", "T"],
+    rules: gtv = null.to_gtv()
+): ft4.accounts.auth_descriptor {
+    return ft4.accounts.auth_descriptor(
+        ft4.accounts.auth_type.ES,
+        [
+            set(permissions).to_gtv(),
+            signer.to_hex().to_gtv()
+        ],
+        rules
+    );
+}

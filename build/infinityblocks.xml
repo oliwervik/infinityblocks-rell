@@ -57,6 +57,22 @@
                     </entry>
                     <entry key="sources">
                         <dict>
+                            <entry key="accounts/functions.rell">
+                                <string>function create_auth_descriptor(
+    signer: byte_array,
+    permissions: list&lt;text&gt; = ["A", "T"],
+    rules: gtv = null.to_gtv()
+): ft4.accounts.auth_descriptor {
+    return ft4.accounts.auth_descriptor(
+        ft4.accounts.auth_type.ES,
+        [
+            set(permissions).to_gtv(),
+            signer.to_hex().to_gtv()
+        ],
+        rules
+    );
+}</string>
+                            </entry>
                             <entry key="accounts/model.rell">
                                 <string>entity user {
   mutable name;
@@ -201,6 +217,7 @@ struct canvas_dto {
 import lib.ft4.auth;
 import lib.ft4.ft4_basic_dev.*;
 import wallet.*;
+import accounts.*;
 
 @extend(auth.auth_handler)
 function () = auth.add_auth_handler(
@@ -232,8 +249,10 @@ function () = auth.add_auth_handler(
         );
 
         // Transfer to admin account
-        val admin_account = ft4.accounts.account_by_id(ft4.admin.get_admin_pubkey());
+        val auth_desc = create_auth_descriptor(ft4.admin.get_admin_pubkey());
+        val admin_account = ft4.accounts.account_by_id(auth_desc.hash());
         transfer_to(account, admin_account, 1);
+        
     } else {
         update cell @ {
             .location.x == x,
@@ -246,7 +265,8 @@ function () = auth.add_auth_handler(
         );
 
         // Transfer to admin account
-        val admin_account = ft4.accounts.account_by_id(ft4.admin.get_admin_pubkey());
+        val auth_desc = create_auth_descriptor(ft4.admin.get_admin_pubkey());
+        val admin_account = ft4.accounts.account_by_id(auth_desc.hash());
         transfer_to(account, admin_account, 1);
     }
 }
@@ -2227,23 +2247,7 @@ function register_asset_if_needed(asset_name: name, symbol: text, decimals: inte
 function create_admin_acc() {
     val auth_descriptor = create_auth_descriptor(ft4.admin.get_admin_pubkey());
     ft4.accounts.Unsafe.create_account_with_auth(auth_descriptor);
-}
-
-function create_auth_descriptor(
-    signer: byte_array,
-    permissions: list&lt;text&gt; = ["A", "T"],
-    rules: gtv = null.to_gtv()
-): auth_descriptor {
-    return auth_descriptor(
-        auth_type.S,
-        [
-            set(permissions).to_gtv(),
-            signer.to_hex().to_gtv()
-        ],
-        rules
-    );
-}
-</string>
+}</string>
                             </entry>
                             <entry key="registration/evm.rell">
                                 <string>namespace evm {
@@ -2285,8 +2289,23 @@ operation register_account(name, evm_address: byte_array, signature) {
     val account = evm.create_account_from_evm(evm_address, signature);
     val user = create user ( name, evm_address, account );
     create_wallet(account);
-    add_auth_descriptor_to_account(account, single_sig_auth_descriptor(op_context.get_signers()[0], set(["MySession"])));
-}</string>
+    add_auth_descriptor_to_account(
+        account,
+        single_sig_auth_descriptor(
+            op_context
+                .get_signers()[0],
+            set(
+                [
+                    "MySession"
+                ]
+            )
+        )
+    );
+
+    // Give the user starting tokens
+    mint_and_give(account, 10);
+}
+</string>
                             </entry>
                             <entry key="rell_modules/time/constants.rell">
                                 <string>function day_in_millis() {

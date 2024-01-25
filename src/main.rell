@@ -32,18 +32,3 @@ function create_admin_acc() {
     val auth_descriptor = create_auth_descriptor(ft4.admin.get_admin_pubkey());
     ft4.accounts.Unsafe.create_account_with_auth(auth_descriptor);
 }
-
-function create_auth_descriptor(
-    signer: byte_array,
-    permissions: list<text> = ["A", "T"],
-    rules: gtv = null.to_gtv()
-): auth_descriptor {
-    return auth_descriptor(
-        auth_type.S,
-        [
-            set(permissions).to_gtv(),
-            signer.to_hex().to_gtv()
-        ],
-        rules
-    );
-}

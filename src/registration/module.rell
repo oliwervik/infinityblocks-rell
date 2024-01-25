@@ -16,5 +16,19 @@ operation register_account(name, evm_address: byte_array, signature) {
     val account = evm.create_account_from_evm(evm_address, signature);
     val user = create user ( name, evm_address, account );
     create_wallet(account);
-    add_auth_descriptor_to_account(account, single_sig_auth_descriptor(op_context.get_signers()[0], set(["MySession"])));
+    add_auth_descriptor_to_account(
+        account,
+        single_sig_auth_descriptor(
+            op_context
+                .get_signers()[0],
+            set(
+                [
+                    "MySession"
+                ]
+            )
+        )
+    );
+
+    // Give the user starting tokens
+    mint_and_give(account, 10);
 }
