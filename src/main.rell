@@ -9,11 +9,8 @@ import wallet.*;
 
 operation init() {
     ft4.admin.require_admin();
-    // Initialize Canvas
     init_canvas();
-    // Create admin account
     create_admin_acc();
-    // Register assets
     register_asset_if_needed("Obsidian", "OBSN", 10, "https://infinityblocks.art/obsidian-token.png");
 }
 

@@ -21,7 +21,6 @@ operation paint_cell(x: integer, y: integer, at_color: text) {
             dirty = true
         );
 
-        // Transfer to admin account
         val auth_desc = create_auth_descriptor(ft4.admin.get_admin_pubkey());
         val admin_account = ft4.accounts.account_by_id(auth_desc.hash());
         transfer_to(account, admin_account, 1);
@@ -37,7 +36,6 @@ operation paint_cell(x: integer, y: integer, at_color: text) {
             dirty = true
         );
 
-        // Transfer to admin account
         val auth_desc = create_auth_descriptor(ft4.admin.get_admin_pubkey());
         val admin_account = ft4.accounts.account_by_id(auth_desc.hash());
         transfer_to(account, admin_account, 1);

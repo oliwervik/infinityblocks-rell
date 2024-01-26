@@ -8,13 +8,11 @@ operation change_username(new_username: text) {
         update user @ { .account == account } ( name = new_username );
     } else {
         val currentTime = time.now();
-        // Get the timestamp since last name change
         val timestamp = user_history @ { .account == account } ( @sort_desc .last_name_change ) limit 1;
-        // Check if the last name change is done not sooner than 1 minute ago
+
         require(currentTime - timestamp >= 60 * 1000, "You can change your username only once per 1 minute");
-        // Check if the name already exist on an account
         require(not exists(user @? { .name == new_username }), "Username is already taken");
-        // If not, we create a new user_history entry and update the users name
+
         create user_history ( account = account, last_name_change = time.now() );
         update user @ { .account == account } ( name = new_username );
     }

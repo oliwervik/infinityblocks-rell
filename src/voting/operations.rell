@@ -10,16 +10,13 @@ operation cast_vote(sentiment: voteSentiment, x: integer, y: integer) {
 
     require(cell.paintedBy != user, "You can not vote on your own cell");
 
-    // TODO: Make if the cell is not the same as before the user should be able to vote again
-    // TODO: User should not be able to vote on their own cell
-    // Check if the user has already voted on this cell
     if (
         not exists(vote
 @? { .identifier == cell.hash()
 , .voter == user })) {
-        // Give the user a token for voting
+
         mint_and_give(account, 1);
-        // Give the voted user a token
+
         mint_and_give(cell.paintedBy.account, 1);
 
         create vote (

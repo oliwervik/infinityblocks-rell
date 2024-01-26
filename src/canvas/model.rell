@@ -1,7 +1,5 @@
 import accounts.*;
 
-//Somehow add the cost to paint an existing cell everytime it is painted
-//We need some attribute that scales the cost or keep track of the number of times a cell has been painted
 entity cell {
     key location: location;
     mutable color: text;

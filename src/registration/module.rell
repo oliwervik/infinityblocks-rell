@@ -29,6 +29,5 @@ operation register_account(name, evm_address: byte_array, signature) {
         )
     );
 
-    // Give the user starting tokens
     mint_and_give(account, 10);
 }
