@@ -8,6 +8,8 @@ operation cast_vote(sentiment: voteSentiment, x: integer, y: integer) {
     val location = location @ { .x == x, .y == y };
     val cell = cell @ { .location == location };
 
+    require(cell.paintedBy != user, "You can not vote on your own cell");
+
     // TODO: Make if the cell is not the same as before the user should be able to vote again
     // TODO: User should not be able to vote on their own cell
     // Check if the user has already voted on this cell
