@@ -1,4 +1,5 @@
 #Sensative
 *.keypair
+*.secret
 
 */lib
