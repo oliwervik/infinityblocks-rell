@@ -1,0 +1,4 @@
+@mount("admin.leaderboards")
+module;
+
+import ^.*;

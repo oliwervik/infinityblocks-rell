@@ -1,3 +1,5 @@
+module;
+
 import accounts.*;
 
 import lib.ft4.auth;

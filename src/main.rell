@@ -6,12 +6,16 @@ import canvas.*;
 import voting.*;
 import rell_modules.time;
 import wallet.*;
+import leaderboards.*;
 
 operation init() {
     ft4.admin.require_admin();
     init_canvas();
     create_admin_acc();
     register_asset_if_needed("Obsidian", "OBSN", 10, "https://infinityblocks.art/obsidian-token.png");
+
+    generate_lb(LeaderboardType.TopPaintedCells, 60);
+    generate_lb(LeaderboardType.TopVoted, 60);
 }
 
 function register_asset_if_needed(asset_name: name, symbol: text, decimals: integer, icon_url: text) {

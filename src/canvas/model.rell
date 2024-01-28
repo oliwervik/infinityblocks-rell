@@ -1,5 +1,3 @@
-import accounts.*;
-
 entity cell {
     key location: location;
     mutable color: text;

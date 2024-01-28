@@ -1,0 +1,44 @@
+function generate_lb(type: LeaderboardType, durationDays: integer) {
+    val lb = leaderboard @? {
+        .type == type,
+        .created <= time.now(),
+        .expired > time.now()
+    };
+
+    if (empty(lb)) {
+        create_lb(type, durationDays);
+    } else {
+        require(false, "Active leaderboard already exists for that type");
+    }
+}
+
+function create_lb(type: LeaderboardType, durationDays: integer) {
+    create leaderboard (
+        type,
+        .created = time.now(),
+        .expired = time.days_from_now(durationDays)
+    );
+}
+
+function get_lb_participants(type: LeaderboardType, page_size: integer) {
+    val lb = leaderboard @? {
+        .type == type,
+        .created <= time.now(),
+        .expired > time.now()
+    };
+
+    if (empty(lb)) {
+        return null;
+    } else {
+        return leaderboard_participant @* {
+            .leaderboard == lb
+        } ( @sort_desc .user, .score ) limit page_size;
+    }
+}
+
+function get_active_lbs() {
+    return leaderboard @? {
+        .created <= time.now(),
+        .expired > time.now()
+    } ( @sort_desc .created );
+}

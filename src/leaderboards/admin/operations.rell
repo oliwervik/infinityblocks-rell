@@ -1,0 +1,4 @@
+operation create_leaderboard(type: LeaderboardType, durationDays: integer) {
+    ft4.admin.require_admin();
+    generate_lb(type, durationDays);
+}

@@ -1,0 +1,15 @@
+entity leaderboard {
+    key type: LeaderboardType;
+    created: timestamp;
+    expired: timestamp;
+}
+
+entity leaderboard_participant {
+    key leaderboard: leaderboard, user: user;
+    mutable score: integer;
+}
+
+enum LeaderboardType {
+    TopVoted,
+    TopPaintedCells
+}

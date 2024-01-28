@@ -105,13 +105,11 @@ import rell_modules.time;</string>
         update user @ { .account == account } ( name = new_username );
     } else {
         val currentTime = time.now();
-        // Get the timestamp since last name change
         val timestamp = user_history @ { .account == account } ( @sort_desc .last_name_change ) limit 1;
-        // Check if the last name change is done not sooner than 1 minute ago
+
         require(currentTime - timestamp &gt;= 60 * 1000, "You can change your username only once per 1 minute");
-        // Check if the name already exist on an account
         require(not exists(user @? { .name == new_username }), "Username is already taken");
-        // If not, we create a new user_history entry and update the users name
+
         create user_history ( account = account, last_name_change = time.now() );
         update user @ { .account == account } ( name = new_username );
     }
@@ -131,9 +129,6 @@ query get_all_accounts() = ft4.acc.account @* { } ( .id );
     return cell @ { .location == location };
 }
 
-// *
-// * Utility functions
-// *
 function require_is_signer(pubkey) = require(op_context.is_signer(pubkey), "User must sign this operation");
 
 function require_user(id: byte_array) = require(user @? { id }, "User with id %b does not exist".format(id));
@@ -156,11 +151,7 @@ function init_canvas() {
 }</string>
                             </entry>
                             <entry key="canvas/model.rell">
-                                <string>import accounts.*;
-
-//Somehow add the cost to paint an existing cell everytime it is painted
-//We need some attribute that scales the cost or keep track of the number of times a cell has been painted
-entity cell {
+                                <string>entity cell {
     key location: location;
     mutable color: text;
     mutable paintedBy: user;
@@ -248,7 +239,6 @@ function () = auth.add_auth_handler(
             dirty = true
         );
 
-        // Transfer to admin account
         val auth_desc = create_auth_descriptor(ft4.admin.get_admin_pubkey());
         val admin_account = ft4.accounts.account_by_id(auth_desc.hash());
         transfer_to(account, admin_account, 1);
@@ -264,7 +254,6 @@ function () = auth.add_auth_handler(
             dirty = true
         );
 
-        // Transfer to admin account
         val auth_desc = create_auth_descriptor(ft4.admin.get_admin_pubkey());
         val admin_account = ft4.accounts.account_by_id(auth_desc.hash());
         transfer_to(account, admin_account, 1);
@@ -298,6 +287,88 @@ import main;
 import test.test_operations.*;
 import canvas.*;
 import voting.*;</string>
+                            </entry>
+                            <entry key="leaderboards/functions.rell">
+                                <string>function generate_lb(type: LeaderboardType, durationDays: integer) {
+    val lb = leaderboard @? {
+        .type == type,
+        .created &lt;= time.now(),
+        .expired &gt; time.now()
+    };
+
+    if (empty(lb)) {
+        create_lb(type, durationDays);
+    } else {
+        require(false, "Active leaderboard already exists for that type");
+    }
+}
+
+function create_lb(type: LeaderboardType, durationDays: integer) {
+    create leaderboard (
+        type,
+        .created = time.now(),
+        .expired = time.days_from_now(durationDays)
+    );
+}
+
+function get_lb_participants(type: LeaderboardType, page_size: integer) {
+    val lb = leaderboard @? {
+        .type == type,
+        .created &lt;= time.now(),
+        .expired &gt; time.now()
+    };
+
+    if (empty(lb)) {
+        return null;
+    } else {
+        return leaderboard_participant @* {
+            .leaderboard == lb
+        } ( @sort_desc .user, .score ) limit page_size;
+    }
+}
+
+function get_active_lbs() {
+    return leaderboard @? {
+        .created &lt;= time.now(),
+        .expired &gt; time.now()
+    } ( @sort_desc .created );
+}
+</string>
+                            </entry>
+                            <entry key="leaderboards/model.rell">
+                                <string>entity leaderboard {
+    key type: LeaderboardType;
+    created: timestamp;
+    expired: timestamp;
+}
+
+entity leaderboard_participant {
+    key leaderboard: leaderboard, user: user;
+    mutable score: integer;
+}
+
+enum LeaderboardType {
+    TopVoted,
+    TopPaintedCells
+}
+</string>
+                            </entry>
+                            <entry key="leaderboards/module.rell">
+                                <string>module;
+
+import accounts.*;
+import rell_modules.time;</string>
+                            </entry>
+                            <entry key="leaderboards/queries.rell">
+                                <string>query get_leaderboard_participants(type: LeaderboardType, page_size: integer) {
+    require(page_size &lt;= 100, "page_size must be less than or equal to 100");
+    return get_lb_participants(type, page_size);
+}
+
+query get_active_leaderboards() {
+    return get_active_lbs();
+}
+</string>
                             </entry>
                             <entry key="lib/ft4/accounts/auth_basic.rell">
                                 <string>
@@ -2222,15 +2293,16 @@ import canvas.*;
 import voting.*;
 import rell_modules.time;
 import wallet.*;
+import leaderboards.*;
 
 operation init() {
     ft4.admin.require_admin();
-    // Initialize Canvas
     init_canvas();
-    // Create admin account
     create_admin_acc();
-    // Register assets
     register_asset_if_needed("Obsidian", "OBSN", 10, "https://infinityblocks.art/obsidian-token.png");
+
+    generate_lb(LeaderboardType.TopPaintedCells, 60);
+    generate_lb(LeaderboardType.TopVoted, 60);
 }
 
 function register_asset_if_needed(asset_name: name, symbol: text, decimals: integer, icon_url: text) {
@@ -2247,7 +2319,8 @@ function register_asset_if_needed(asset_name: name, symbol: text, decimals: inte
 function create_admin_acc() {
     val auth_descriptor = create_auth_descriptor(ft4.admin.get_admin_pubkey());
     ft4.accounts.Unsafe.create_account_with_auth(auth_descriptor);
-}</string>
+}
+</string>
                             </entry>
                             <entry key="registration/evm.rell">
                                 <string>namespace evm {
@@ -2302,7 +2375,6 @@ operation register_account(name, evm_address: byte_array, signature) {
         )
     );
 
-    // Give the user starting tokens
     mint_and_give(account, 10);
 }
 </string>
@@ -2386,7 +2458,9 @@ struct vote_dto {
 }</string>
                             </entry>
                             <entry key="voting/module.rell">
-                                <string>import canvas.*;
+                                <string>module;
+
+import canvas.*;
 import accounts.*;
 import wallet.*;
 
@@ -2407,16 +2481,13 @@ import lib.ft4.ft4_basic_dev.*;
 
     require(cell.paintedBy != user, "You can not vote on your own cell");
 
-    // TODO: Make if the cell is not the same as before the user should be able to vote again
-    // TODO: User should not be able to vote on their own cell
-    // Check if the user has already voted on this cell
     if (
         not exists(vote
 @? { .identifier == cell.hash()
 , .voter == user })) {
-        // Give the user a token for voting
+
         mint_and_give(account, 1);
-        // Give the voted user a token
+
         mint_and_give(cell.paintedBy.account, 1);
 
         create vote (
@@ -2486,7 +2557,9 @@ function check_balance(account: account) {
 </string>
                             </entry>
                             <entry key="wallet/module.rell">
-                                <string>import accounts.*;
+                                <string>module;
+
+import accounts.*;
 
 import lib.ft4.auth;
 import lib.ft4.ft4_basic_dev.*;
