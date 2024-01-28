@@ -3,6 +3,7 @@ module;
 import canvas.*;
 import accounts.*;
 import wallet.*;
+import leaderboards.*;
 
 import lib.ft4.auth;
 import lib.ft4.ft4_basic_dev.*;

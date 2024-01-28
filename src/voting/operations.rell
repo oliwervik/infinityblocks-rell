@@ -9,6 +9,7 @@ operation cast_vote(sentiment: voteSentiment, x: integer, y: integer) {
     val cell = cell @ { .location == location };
 
     require(cell.paintedBy != user, "You can not vote on your own cell");
+    require(user @? { .account == cell.paintedBy.account }, "Error finding cell owner");
 
     if (
         not exists(vote
@@ -18,6 +19,7 @@ operation cast_vote(sentiment: voteSentiment, x: integer, y: integer) {
         mint_and_give(account, 1);
 
         mint_and_give(cell.paintedBy.account, 1);
+        update_lb_participant(LeaderboardType.TopVoted, user @ { .account == cell.paintedBy.account });
 
         create vote (
             .identifier = cell.hash(),

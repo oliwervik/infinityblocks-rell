@@ -42,3 +42,30 @@ function get_active_lbs() {
         .expired > time.now()
     } ( @sort_desc .created );
 }
+
+function update_lb_participant(type: LeaderboardType, user: user) {
+    val lb = leaderboard @? {
+        .type == type,
+        .created <= time.now(),
+        .expired > time.now()
+    };
+
+    if (not empty(lb)) {
+        val participant = leaderboard_participant @? {
+            .leaderboard == lb,
+            .user == user
+        };
+
+        if (empty(participant)) {
+            create leaderboard_participant (
+                .leaderboard = lb,
+                .user = user,
+                .score = 1
+            );
+        } else {
+            update leaderboard_participant @ { lb, user } (
+                .score += 1
+            );
+        }
+    }
+}

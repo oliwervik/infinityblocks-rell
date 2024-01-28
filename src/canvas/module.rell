@@ -4,6 +4,7 @@ import lib.ft4.auth;
 import lib.ft4.ft4_basic_dev.*;
 import wallet.*;
 import accounts.*;
+import leaderboards.*;
 
 @extend(auth.auth_handler)
 function () = auth.add_auth_handler(
