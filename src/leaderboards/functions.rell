@@ -32,15 +32,17 @@ function get_lb_participants(type: LeaderboardType, page_size: integer) {
     } else {
         return leaderboard_participant @* {
             .leaderboard == lb
-        } ( @sort_desc .user, .score ) limit page_size;
+        } (
+            leaderboard_participant_dto(.leaderboard.to_struct(), .user.to_struct(), .score)
+        ) limit page_size;
     }
 }
 
 function get_active_lbs() {
-    return leaderboard @? {
+    return leaderboard @* {
         .created <= time.now(),
         .expired > time.now()
-    } ( @sort_desc .created );
+    } ( leaderboard_dto(.type, .created, .expired) );
 }
 
 function update_lb_participant(type: LeaderboardType, user: user) {

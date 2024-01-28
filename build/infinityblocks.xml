@@ -209,6 +209,7 @@ import lib.ft4.auth;
 import lib.ft4.ft4_basic_dev.*;
 import wallet.*;
 import accounts.*;
+import leaderboards.*;
 
 @extend(auth.auth_handler)
 function () = auth.add_auth_handler(
@@ -242,7 +243,7 @@ function () = auth.add_auth_handler(
         val auth_desc = create_auth_descriptor(ft4.admin.get_admin_pubkey());
         val admin_account = ft4.accounts.account_by_id(auth_desc.hash());
         transfer_to(account, admin_account, 1);
-        
+        update_lb_participant(LeaderboardType.TOPPAINTEDCELLS, user);
     } else {
         update cell @ {
             .location.x == x,
@@ -257,6 +258,7 @@ function () = auth.add_auth_handler(
         val auth_desc = create_auth_descriptor(ft4.admin.get_admin_pubkey());
         val admin_account = ft4.accounts.account_by_id(auth_desc.hash());
         transfer_to(account, admin_account, 1);
+        update_lb_participant(LeaderboardType.TOPPAINTEDCELLS, user);
     }
 }
 </string>
@@ -323,15 +325,44 @@ function get_lb_participants(type: LeaderboardType, page_size: integer) {
     } else {
         return leaderboard_participant @* {
             .leaderboard == lb
-        } ( @sort_desc .user, .score ) limit page_size;
+        } (
+            leaderboard_participant_dto(.leaderboard.to_struct(), .user.to_struct(), .score)
+        ) limit page_size;
     }
 }
 
 function get_active_lbs() {
-    return leaderboard @? {
+    return leaderboard @* {
         .created &lt;= time.now(),
         .expired &gt; time.now()
-    } ( @sort_desc .created );
+    } ( leaderboard_dto(.type, .created, .expired) );
+}
+
+function update_lb_participant(type: LeaderboardType, user: user) {
+    val lb = leaderboard @? {
+        .type == type,
+        .created &lt;= time.now(),
+        .expired &gt; time.now()
+    };
+
+    if (not empty(lb)) {
+        val participant = leaderboard_participant @? {
+            .leaderboard == lb,
+            .user == user
+        };
+
+        if (empty(participant)) {
+            create leaderboard_participant (
+                .leaderboard = lb,
+                .user = user,
+                .score = 1
+            );
+        } else {
+            update leaderboard_participant @ { lb, user } (
+                .score += 1
+            );
+        }
+    }
 }
 </string>
                             </entry>
@@ -348,8 +379,20 @@ entity leaderboard_participant {
 }
 
 enum LeaderboardType {
-    TopVoted,
-    TopPaintedCells
+    TOPVOTED,
+    TOPPAINTEDCELLS
+}
+
+struct leaderboard_dto {
+    type: LeaderboardType;
+    created: timestamp;
+    expired: timestamp;
+}
+
+struct leaderboard_participant_dto {
+    leaderboard: struct&lt;leaderboard&gt;;
+    user: struct&lt;user&gt;;
+    score: integer;
 }
 </string>
                             </entry>
@@ -2301,8 +2344,8 @@ operation init() {
     create_admin_acc();
     register_asset_if_needed("Obsidian", "OBSN", 10, "https://infinityblocks.art/obsidian-token.png");
 
-    generate_lb(LeaderboardType.TopPaintedCells, 60);
-    generate_lb(LeaderboardType.TopVoted, 60);
+    generate_lb(LeaderboardType.TOPPAINTEDCELLS, 60);
+    generate_lb(LeaderboardType.TOPVOTED, 60);
 }
 
 function register_asset_if_needed(asset_name: name, symbol: text, decimals: integer, icon_url: text) {
@@ -2463,6 +2506,7 @@ struct vote_dto {
 import canvas.*;
 import accounts.*;
 import wallet.*;
+import leaderboards.*;
 
 import lib.ft4.auth;
 import lib.ft4.ft4_basic_dev.*;
@@ -2480,6 +2524,7 @@ import lib.ft4.ft4_basic_dev.*;
     val cell = cell @ { .location == location };
 
     require(cell.paintedBy != user, "You can not vote on your own cell");
+    require(user @? { .account == cell.paintedBy.account }, "Error finding cell owner");
 
     if (
         not exists(vote
@@ -2489,6 +2534,7 @@ import lib.ft4.ft4_basic_dev.*;
         mint_and_give(account, 1);
 
         mint_and_give(cell.paintedBy.account, 1);
+        update_lb_participant(LeaderboardType.TOPVOTED, user @ { .account == cell.paintedBy.account });
 
         create vote (
             .identifier = cell.hash(),

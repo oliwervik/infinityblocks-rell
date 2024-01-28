@@ -24,7 +24,7 @@ operation paint_cell(x: integer, y: integer, at_color: text) {
         val auth_desc = create_auth_descriptor(ft4.admin.get_admin_pubkey());
         val admin_account = ft4.accounts.account_by_id(auth_desc.hash());
         transfer_to(account, admin_account, 1);
-        update_lb_participant(LeaderboardType.TopPaintedCells, user);
+        update_lb_participant(LeaderboardType.TOPPAINTEDCELLS, user);
     } else {
         update cell @ {
             .location.x == x,
@@ -39,6 +39,6 @@ operation paint_cell(x: integer, y: integer, at_color: text) {
         val auth_desc = create_auth_descriptor(ft4.admin.get_admin_pubkey());
         val admin_account = ft4.accounts.account_by_id(auth_desc.hash());
         transfer_to(account, admin_account, 1);
-        update_lb_participant(LeaderboardType.TopPaintedCells, user);
+        update_lb_participant(LeaderboardType.TOPPAINTEDCELLS, user);
     }
 }

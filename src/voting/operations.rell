@@ -19,7 +19,7 @@ operation cast_vote(sentiment: voteSentiment, x: integer, y: integer) {
         mint_and_give(account, 1);
 
         mint_and_give(cell.paintedBy.account, 1);
-        update_lb_participant(LeaderboardType.TopVoted, user @ { .account == cell.paintedBy.account });
+        update_lb_participant(LeaderboardType.TOPVOTED, user @ { .account == cell.paintedBy.account });
 
         create vote (
             .identifier = cell.hash(),

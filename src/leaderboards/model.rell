@@ -10,6 +10,18 @@ entity leaderboard_participant {
 }
 
 enum LeaderboardType {
-    TopVoted,
-    TopPaintedCells
+    TOPVOTED,
+    TOPPAINTEDCELLS
+}
+
+struct leaderboard_dto {
+    type: LeaderboardType;
+    created: timestamp;
+    expired: timestamp;
+}
+
+struct leaderboard_participant_dto {
+    leaderboard: struct<leaderboard>;
+    user: struct<user>;
+    score: integer;
 }
