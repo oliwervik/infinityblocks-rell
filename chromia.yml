@@ -24,3 +24,10 @@ libs:
     path: rell/src/lib/ft4
     rid: x"AF18D94EC9B01F9FD82BCE6B12F68D83CF19C9E2B2CDFB49C8AA2C9AA38B31B4"
     insecure: false
+deployments:
+  testnet: #Deployment Target name
+    brid: x"A7FBCA6FE0B3DF8320876C4A00247A27EE86405D027F9FDFDCBF6A088392889D" #Blockchain RID for the testnet management chain
+    url: https://testnet4.chromia.dev:7740 #Target URL for one of the nodes in the testnet
+    container: VtJTLva3ac
+    chains:
+      infinityblocks: x"CD0F370674DF79AC70B6A46F0715C33C049BA98797B28039889A41D6513B55F1"
