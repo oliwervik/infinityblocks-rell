@@ -132,10 +132,11 @@ module;
 import ^.*;</string>
                             </entry>
                             <entry key="canvas/admin/operations.rell">
-                                <string>operation update_canvas_zoomScale(minScale: decimal, maxScale: decimal) {
+                                <string>operation update_canvas_zoomScale(minScale: integer, maxScale: integer) {
     ft4.admin.require_admin();
     set_canvas_zoomScale(minScale, maxScale);
-}</string>
+}
+</string>
                             </entry>
                             <entry key="canvas/functions.rell">
                                 <string>function get_cell(location) {
@@ -163,7 +164,7 @@ function init_canvas() {
     }
 }
 
-function set_canvas_zoomScale(minScale: decimal, maxScale: decimal) {
+function set_canvas_zoomScale(minScale: integer, maxScale: integer) {
     val canvas = canvas @* { } limit 1;
     update canvas ( .minScale = minScale, .maxScale = maxScale );
 }

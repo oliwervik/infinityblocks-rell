@@ -124,19 +124,6 @@ import rell_modules.time;</string>
 query get_all_accounts() = ft4.acc.account @* { } ( .id );
 </string>
                             </entry>
-                            <entry key="canvas/admin/module.rell">
-                                <string>@mount("admin.canvas")
-
-module;
-
-import ^.*;</string>
-                            </entry>
-                            <entry key="canvas/admin/operations.rell">
-                                <string>operation update_canvas_zoomScale(minScale: decimal, maxScale: decimal) {
-    ft4.admin.require_admin();
-    set_canvas_zoomScale(minScale, maxScale);
-}</string>
-                            </entry>
                             <entry key="canvas/functions.rell">
                                 <string>function get_cell(location) {
     return cell @ { .location == location };
@@ -156,18 +143,12 @@ function init_canvas() {
         create canvas (
             size = canvas_size,
             pixelSize = 20,
-            minScale = 10,
-            maxScale = 50,
+            minScale = 0.1,
+            maxScale = 11,
             defaultColor = "0xffffff"
         );
     }
-}
-
-function set_canvas_zoomScale(minScale: decimal, maxScale: decimal) {
-    val canvas = canvas @* { } limit 1;
-    update canvas ( .minScale = minScale, .maxScale = maxScale );
-}
-</string>
+}</string>
                             </entry>
                             <entry key="canvas/model.rell">
                                 <string>entity cell {
@@ -308,19 +289,6 @@ import main;
 import test.test_operations.*;
 import canvas.*;
 import voting.*;</string>
-                            </entry>
-                            <entry key="leaderboards/admin/module.rell">
-                                <string>@mount("admin.leaderboards")
-module;
-
-import ^.*;</string>
-                            </entry>
-                            <entry key="leaderboards/admin/operations.rell">
-                                <string>operation create_leaderboard(type: LeaderboardType, durationDays: integer) {
-    ft4.admin.require_admin();
-    generate_lb(type, durationDays);
-}
-</string>
                             </entry>
                             <entry key="leaderboards/functions.rell">
                                 <string>function generate_lb(type: LeaderboardType, durationDays: integer) {
@@ -2381,13 +2349,11 @@ query get_version(): text = "0.1.7";
 import accounts;
 import registration.*;
 import canvas.*;
-import canvas.admin.*;
 import voting.*;
 import rell_modules.time;
 import wallet.*;
 import wallet.admin.*;
 import leaderboards.*;
-import leaderboards.admin.*;
 
 operation init() {
     ft4.admin.require_admin();

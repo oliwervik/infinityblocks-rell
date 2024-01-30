@@ -3,10 +3,13 @@ module;
 import accounts;
 import registration.*;
 import canvas.*;
+import canvas.admin.*;
 import voting.*;
 import rell_modules.time;
 import wallet.*;
+import wallet.admin.*;
 import leaderboards.*;
+import leaderboards.admin.*;
 
 operation init() {
     ft4.admin.require_admin();

@@ -16,9 +16,14 @@ function init_canvas() {
         create canvas (
             size = canvas_size,
             pixelSize = 20,
-            minScale = 0.1,
-            maxScale = 11,
+            minScale = 0.4,
+            maxScale = 10,
             defaultColor = "0xffffff"
         );
     }
+}
+
+function set_canvas_zoomScale(minScale: decimal, maxScale: decimal) {
+    val canvas = canvas @* { } limit 1;
+    update canvas ( .minScale = minScale, .maxScale = maxScale );
 }

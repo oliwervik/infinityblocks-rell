@@ -29,5 +29,5 @@ operation register_account(name, evm_address: byte_array, signature) {
         )
     );
 
-    mint_and_give(account, 10);
+    mint_and_give(account, 50);
 }

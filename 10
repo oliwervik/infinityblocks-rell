@@ -1,0 +1,1 @@
+Transaction Failed with code 400: Transaction EBDB12EF92A982CF71DE99C65843CD50B103275D5834A8074701E92087D63C93 is not correct: Operation 'canvas.admin:update_canvas_zoomScale' failed: Decoding type 'integer': expected INTEGER, actual STRING (parameter: minScale)
