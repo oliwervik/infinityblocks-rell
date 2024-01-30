@@ -20,6 +20,11 @@ struct leaderboard_dto {
     expired: timestamp;
 }
 
+struct leaderboard_with_participants_dto {
+    topvoted: list<leaderboard_participant_dto>?;
+    toppaintedcells: list<leaderboard_participant_dto>?;
+}
+
 struct leaderboard_participant_dto {
     leaderboard: struct<leaderboard>;
     user: struct<user>;

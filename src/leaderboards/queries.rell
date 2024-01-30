@@ -5,18 +5,9 @@ query get_leaderboard_participants(type: LeaderboardType, page_size: integer) {
 
 query get_all_leaderboard_participants(page_size: integer) {
     require(page_size <= 100, "page_size must be less than or equal to 100");
-    return [
-        get_lb_participants(
-            LeaderboardType
-                .TOPVOTED,
-            page_size
-        ),
-        get_lb_participants(
-            LeaderboardType
-                .TOPPAINTEDCELLS,
-            page_size
-        )
-    ];
+    val lb_topvoted = get_lb_participants(LeaderboardType.TOPVOTED, page_size);
+    val lb_toppainted = get_lb_participants(LeaderboardType.TOPPAINTEDCELLS, page_size);
+    return leaderboard_with_participants_dto(topvoted = lb_topvoted, toppaintedcells = lb_toppainted);
 }
 
 query get_active_leaderboards() {
