@@ -1,3 +1,9 @@
+@log entity cell_event {
+    location: location;
+    color: text;
+}
+
+
 entity cell {
     key location: location;
     mutable color: text;

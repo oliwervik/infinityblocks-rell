@@ -1,4 +1,0 @@
-@mount("admin.wallet")
-module;
-
-import ^.*;

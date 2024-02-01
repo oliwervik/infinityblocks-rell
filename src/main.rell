@@ -7,7 +7,6 @@ import canvas.admin.*;
 import voting.*;
 import rell_modules.time;
 import wallet.*;
-import wallet.admin.*;
 import leaderboards.*;
 import leaderboards.admin.*;
 
@@ -22,9 +21,7 @@ operation init() {
 }
 
 function register_asset_if_needed(asset_name: name, symbol: text, decimals: integer, icon_url: text) {
-    // derive id of the asset
     val asset_id = (asset_name, chain_context.blockchain_rid).hash();
-    // check if asset already exist
     if (
         ft4.assets.asset @ ? {
          .id == asset_id

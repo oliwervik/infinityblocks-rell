@@ -1,6 +1,0 @@
-operation give_tokens(account_id: byte_array, amount: integer) {
-    ft4.admin.require_admin();
-    val acc = account @ { account_id };
-    
-    mint_and_give(acc, amount);
-}

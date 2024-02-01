@@ -25,6 +25,8 @@ operation paint_cell(x: integer, y: integer, at_color: text) {
         val admin_account = ft4.accounts.account_by_id(auth_desc.hash());
         transfer_to(account, admin_account, 1);
         update_lb_participant(LeaderboardType.TOPPAINTEDCELLS, user);
+
+        create cell_event ( location = new_loc, color = at_color );
     } else {
         update cell @ {
             .location.x == x,
@@ -40,5 +42,7 @@ operation paint_cell(x: integer, y: integer, at_color: text) {
         val admin_account = ft4.accounts.account_by_id(auth_desc.hash());
         transfer_to(account, admin_account, 1);
         update_lb_participant(LeaderboardType.TOPPAINTEDCELLS, user);
+
+        create cell_event ( location @ {x, y}, color = at_color );
     }
 }
