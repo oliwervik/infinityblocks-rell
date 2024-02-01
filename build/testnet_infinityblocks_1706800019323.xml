@@ -293,12 +293,12 @@ function () = auth.add_auth_handler(
 </string>
                             </entry>
                             <entry key="canvas/queries.rell">
-                                <string>query get_all_cells() {
+                                <string>query get_all_cells(user_id: byte_array) {
     val cells = cell @* { } ( cell_dto(.location.to_struct(), .paintedAt, .paintedBy.to_struct(), .color, .dirty) );
     return cells;
 }
 
-query get_canvas() {
+query get_canvas(user_id: byte_array) {
     val canvas = canvas @ { } ( canvas_dto(.size.to_struct(), .pixelSize, .minScale, .maxScale, .defaultColor) );
     return canvas;
 }
@@ -321,7 +321,7 @@ query cell_at_time(
     @omit @sort_desc .transaction.block.timestamp,
     .location.to_struct(),
     .color
-);
+) limit 1;
 </string>
                             </entry>
                             <entry key="development.rell">

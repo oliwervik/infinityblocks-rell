@@ -1,9 +1,9 @@
-query get_all_cells(user_id: byte_array) {
+query get_all_cells() {
     val cells = cell @* { } ( cell_dto(.location.to_struct(), .paintedAt, .paintedBy.to_struct(), .color, .dirty) );
     return cells;
 }
 
-query get_canvas(user_id: byte_array) {
+query get_canvas() {
     val canvas = canvas @ { } ( canvas_dto(.size.to_struct(), .pixelSize, .minScale, .maxScale, .defaultColor) );
     return canvas;
 }
@@ -20,10 +20,10 @@ query get_cells_by_user(account_id: byte_array) {
 
 query cell_at_time(
     t: timestamp
-) = cell_event @ {
+) = cell_event @* {
     .transaction.block.timestamp <= t
 } (
     @omit @sort_desc .transaction.block.timestamp,
     .location.to_struct(),
     .color
-) limit 1;
+);
