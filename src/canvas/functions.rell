@@ -6,6 +6,8 @@ function require_is_signer(pubkey) = require(op_context.is_signer(pubkey), "User
 
 function require_user(id: byte_array) = require(user @? { id }, "User with id %b does not exist".format(id));
 
+//The canvas and all its settings are stored on chain, so when we start the blockchain we need to initialize the canvas
+
 function init_canvas() {
     val canvas_size = create size (
         width = 2000,

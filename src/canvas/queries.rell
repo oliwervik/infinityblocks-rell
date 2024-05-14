@@ -18,12 +18,13 @@ query get_cells_by_user(account_id: byte_array) {
     return cells;
 }
 
-query cell_at_time(
+query cells_before_time(
     t: timestamp
 ) = cell_event @* {
     .transaction.block.timestamp <= t
 } (
     @omit @sort_desc .transaction.block.timestamp,
+    cell_event_dto(
     .location.to_struct(),
-    .color
+    .color)
 );

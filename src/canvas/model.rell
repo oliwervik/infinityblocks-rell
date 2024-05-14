@@ -53,3 +53,8 @@ struct canvas_dto {
     maxScale: decimal;
     defaultColor: text;
 }
+
+struct cell_event_dto {
+    location: struct<location>;
+    color: text;
+}

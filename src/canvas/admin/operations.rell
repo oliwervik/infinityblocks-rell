@@ -1,3 +1,5 @@
+//Admin operations for changing the settings of the canvas
+
 operation update_canvas_zoomScale(minScale: decimal, maxScale: decimal) {
     ft4.admin.require_admin();
     set_canvas_zoomScale(minScale, maxScale);
